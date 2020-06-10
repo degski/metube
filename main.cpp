@@ -182,3 +182,114 @@ template<typename Stream>
                                                  : path_.stem ( ).string ( );
     return { std::move ( artist ), std::move ( title ) };
 }
+
+
+/*
+
+
+#include <assert.h>
+#include <iostream>
+#include <leveldb/db.h>
+
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+
+#include <sodium.h>
+
+
+class Uuid : public boost::uuids::uuid {
+
+public:
+
+    Uuid ( ) : boost::uuids::uuid ( boost::uuids::random_generator ( ) ( ) ) { }
+
+    explicit Uuid ( boost::uuids::uuid const& u ) : boost::uuids::uuid ( u ) { }
+
+    operator boost::uuids::uuid ( ) {
+
+        return static_cast<boost::uuids::uuid&> ( *this );
+    }
+
+    operator boost::uuids::uuid ( ) const {
+
+        return static_cast<boost::uuids::uuid const&>( *this );
+    }
+};
+
+
+
+#define PASSWORD "Correct Horse Battery Staple"
+#define WRONG_PASSWORD "Correct Donkey Battery Staple"
+#define KEY_LEN crypto_box_SEEDBYTES
+
+
+
+int main ( ) {
+
+    if ( sodium_init ( ) == -1 ) {
+
+        return 1;
+    }
+
+    unsigned char salt [ crypto_pwhash_scryptsalsa208sha256_SALTBYTES ];
+    unsigned char key [ KEY_LEN ];
+
+    randombytes_buf ( salt, sizeof salt );
+
+    if ( crypto_pwhash_scryptsalsa208sha256	( key, sizeof key, PASSWORD, strlen ( PASSWORD ), salt,
+crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE ) != 0 ) {
+
+        std::cout << "Out of memory...\n";
+    }
+
+    char hashed_password [ crypto_pwhash_scryptsalsa208sha256_STRBYTES ];
+
+    if ( crypto_pwhash_scryptsalsa208sha256_str ( hashed_password, PASSWORD, strlen ( PASSWORD ),
+crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE ) != 0 ) {
+
+        std::cout << "Out of memory...\n";
+    }
+
+    if ( crypto_pwhash_scryptsalsa208sha256_str_verify ( hashed_password, PASSWORD, strlen ( PASSWORD ) ) != 0 ) {
+
+        std::cout << "Wrong password...\n";
+    }
+
+    else {
+
+        std::cout << "Correct password...\n";
+    }
+
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+    leveldb::Status status = leveldb::DB::Open ( options, "./tmp", &db );
+
+    Uuid uuid;
+
+    if ( status.ok ( ) ) {
+
+        std::string value;
+
+        leveldb::Status s = db->Get ( leveldb::ReadOptions ( ), "uiid", &value );
+
+        if ( !s.ok ( ) ) {
+
+            std::cout << "Created uuid...\n";
+
+            status = db->Put ( leveldb::WriteOptions ( ), "uiid", leveldb::Slice ( reinterpret_cast< char* > ( uuid.data ),
+uuid.size ( ) ) );
+        }
+
+        else {
+
+            std::cout << "Not created uuid...\n";
+        }
+    }
+
+    delete db;
+
+    return 0;
+}
+
+*/
