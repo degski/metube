@@ -21,6 +21,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#if defined( _MSC_VER )
+
+#    ifndef NOMINMAX
+#        define NOMINMAX
+#    endif
+
+#    ifndef _AMD64_
+#        define _AMD64_
+#    endif
+
+#    ifndef WIN32_LEAN_AND_MEAN
+#        define WIN32_LEAN_AND_MEAN_DEFINED
+#        define WIN32_LEAN_AND_MEAN
+#    endif
+
+#    include <fcntl.h>
+#    include <io.h>
+
+#    include <windef.h>
+#    include <WinBase.h>
+
+#    include <xmmintrin.h>
+#    include <emmintrin.h>
+#    include <immintrin.h>
+
+#    ifdef WIN32_LEAN_AND_MEAN_DEFINED
+#        undef WIN32_LEAN_AND_MEAN_DEFINED
+#        undef WIN32_LEAN_AND_MEAN
+#    endif
+
+#    define _SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING
+#    define _ENABLE_EXTENDED_ALIGNED_STORAGE
+
+#else
+
+#    include <fcntl.h> // need nix equiv.
+#    include <io.h>    // need nix equiv.
+
+#    include <xmmintrin.h>
+#    include <emmintrin.h>
+#    include <immintrin.h>
+
+#endif
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -101,9 +145,6 @@ namespace Rng {
 
 sax::Rng & rng = Rng::generator ( );
 
-#include <fcntl.h>
-#include <io.h>
-
 #include <sax/utf8conv.hpp>
 
 #if 0
@@ -112,9 +153,80 @@ sax::Rng & rng = Rng::generator ( );
 #    define SYSTEM _wsystem
 #endif
 
-namespace fs = std::filesystem;
+#include <hedley.h>
 
+[[nodiscard]] HEDLEY_ALWAYS_INLINE bool equal_m64 ( void const * const a_, void const * const b_ ) noexcept {
+    __int64 a;
+    memcpy ( &a, a_, sizeof ( __int64 ) );
+    __int64 b;
+    memcpy ( &b, b_, sizeof ( __int64 ) );
+    return a == b;
+}
+
+[[nodiscard]] HEDLEY_ALWAYS_INLINE bool is_equal_m128 ( void const * const a_, void const * const b_ ) noexcept {
+    return not _mm_movemask_pd ( _mm_cmpneq_pd ( _mm_load_pd ( ( double const * ) a_ ), _mm_load_pd ( ( double const * ) b_ ) ) );
+}
+
+union _m128 {
+
+    __m128 m128_m128;
+    __m64 m128_m64[ 2 ];
+    __int32 m128_m32[ 4 ];
+#if defined( _MSC_VER )
+    LONG64 m128_long64[ 2 ];
+#endif
+
+    _m128 ( ) = default;
+
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    _m128 ( ValueType const & v_ ) noexcept {
+        memcpy ( this, &v_, sizeof ( _m128 ) );
+    }
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    _m128 ( ValueType && v_ ) noexcept {
+        memcpy ( this, &v_, sizeof ( _m128 ) );
+    }
+
+    template<typename HalfSizeValueType, typename = std::enable_if_t<sizeof ( HalfSizeValueType ) >= sizeof ( __m64 )>>
+    _m128 ( HalfSizeValueType const & o0_, HalfSizeValueType const & o1_ ) noexcept {
+        memcpy ( m128_m64 + 0, &o0_, sizeof ( __m64 ) );
+        memcpy ( m128_m64 + 1, &o1_, sizeof ( __m64 ) );
+    };
+
+    ~_m128 ( ) = default;
+
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 ), _m128> operator= ( ValueType const & v_ ) noexcept {
+        memcpy ( this, &v_, sizeof ( _m128 ) );
+        return *this;
+    }
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 ), _m128> operator= ( ValueType && v_ ) noexcept {
+        memcpy ( this, &v_, sizeof ( _m128 ) );
+        return *this;
+    }
+
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    [[nodiscard]] bool operator== ( ValueType const & r_ ) const noexcept {
+        return is_equal_m128 ( this, &r_ );
+    }
+    template<typename ValueType, typename = std::enable_if_t<sizeof ( ValueType ) >= sizeof ( __m128 )>>
+    [[nodiscard]] bool operator!= ( ValueType const & r_ ) const noexcept {
+        return unequal_m128 ( this, &r_ );
+    }
+};
+
+struct uuid {
+    _m128 get ( ) const noexcept { return id; }
+
+    private:
+    _m128 const id = { rng ( ), rng ( ) };
+};
+
+#include <leveldb/db.h>
 #include <snappystream.hpp>
+
+#include <sodium.h>
 
 // Function declarations.
 
