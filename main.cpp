@@ -394,7 +394,7 @@ int wmain ( ) {
     leveldb::DB * db;
     leveldb::Options options;
     options.create_if_missing = true;
-    leveldb::Status status    = leveldb::DB::Open ( options, "./tmp", &db );
+    leveldb::Status status    = leveldb::DB::Open ( options, "y:/metube/leveldb", &db );
 
     uuid uuid;
 
