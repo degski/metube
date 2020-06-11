@@ -32,10 +32,11 @@
 #include <algorithm>
 #include <filesystem>
 
-using namespace fs = std::file_system;
+namespace fs = std::filesystem;
 
 #include <initializer_list>
 #include <sax/iostream.hpp>
+#include <fstream>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -127,8 +128,6 @@ template<typename Stream>
 [[nodiscard]] std::tuple<fs::path, fs::path> get_source_target ( std::string const & url_ ) noexcept;
 
 [[nodiscard]] std::tuple<std::string, std::string> get_artist_title ( fs::path const & path_ ) noexcept;
-
-// Main.
 
 int wmain ( int argc_, wchar_t * argv_[], wchar_t *[] ) {
     std::vector<std::string> urls = get_urls ( fs::current_path ( ) / "download.txt" );
