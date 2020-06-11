@@ -216,8 +216,8 @@ union _m128 {
     }
 };
 
-struct uuid {
-    _m128 get ( ) const noexcept { return id; }
+struct ytid { // I7e1su04gfs
+    ytid get ( ) const noexcept { return *this; }
 
     [[nodiscard]] static constexpr std::size_t size ( ) noexcept { return 16; }
 
@@ -225,7 +225,7 @@ struct uuid {
     [[nodiscard]] char const * data ( ) const noexcept { return reinterpret_cast<char const *> ( this ); }
 
     private:
-    _m128 const id = { rng ( ), rng ( ) };
+    _m128 id;
 };
 
 #include <leveldb/db.h>
@@ -396,17 +396,17 @@ int wmain ( ) {
     options.create_if_missing = true;
     leveldb::Status status    = leveldb::DB::Open ( options, "y:/metube/leveldb", &db );
 
-    uuid uuid;
+    ytid ytid;
 
     if ( status.ok ( ) ) {
         std::string value;
         leveldb::Status s = db->Get ( leveldb::ReadOptions ( ), "uiid", &value );
         if ( not s.ok ( ) ) {
-            std::wcout << sax::fg::wgreen << L"uuid created" << nl;
-            status = db->Put ( leveldb::WriteOptions ( ), "uiid", leveldb::Slice ( uuid.data ( ), uuid.size ( ) ) );
+            std::wcout << sax::fg::wgreen << L"ytid created" << nl;
+            status = db->Put ( leveldb::WriteOptions ( ), "uiid", leveldb::Slice ( ytid.data ( ), ytid.size ( ) ) );
         }
         else {
-            std::wcout << sax::fg::wred << L"uuid not created" << nl;
+            std::wcout << sax::fg::wred << L"ytid not created" << nl;
         }
     }
 
