@@ -114,6 +114,8 @@ sax::Rng & rng = Rng::generator ( );
 
 namespace fs = std::filesystem;
 
+#include <snappystream.hpp>
+
 // Function declarations.
 
 void print_exe_info ( wchar_t * name_, std::size_t size_ ) noexcept;
