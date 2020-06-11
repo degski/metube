@@ -240,7 +240,6 @@ template<typename Stream>
     return { std::move ( artist ), std::move ( title ) };
 }
 
-
 /*
 
 
