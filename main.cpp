@@ -412,5 +412,7 @@ int wmain ( ) {
 
     delete db;
 
+    std::wcout << sax::fg::wyellow;
+
     return EXIT_SUCCESS;
 }
