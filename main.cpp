@@ -89,6 +89,7 @@ namespace fs = std::filesystem;
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <sstream>
 #include <thread>
 #include <jthread>
 #include <type_traits>
@@ -400,13 +401,18 @@ int wmain ( ) {
 
     if ( status.ok ( ) ) {
         std::string value;
-        leveldb::Status s = db->Get ( leveldb::ReadOptions ( ), "uiid", &value );
+        leveldb::Status s = db->Get ( leveldb::ReadOptions ( ), "ytid", &value );
         if ( not s.ok ( ) ) {
             std::wcout << sax::fg::wgreen << L"ytid created" << nl;
-            status = db->Put ( leveldb::WriteOptions ( ), "uiid", leveldb::Slice ( ytid.data ( ), ytid.size ( ) ) );
+            status = db->Put ( leveldb::WriteOptions ( ), "ytid", leveldb::Slice ( ytid.data ( ), ytid.size ( ) ) );
         }
         else {
-            std::wcout << sax::fg::wred << L"ytid not created" << nl;
+            std::wcout << sax::fg::wred << L"ytid not created" << sax::fg::green << " data: ";
+            std::ostringstream data;
+            data << std::string{ "data data data data data data data data data data data data data data data data data data data "
+                                 "data data data data data" };
+            data.flush ( );
+            std::cout << sax::fg::bright_blue << data.str ( ) << nl;
         }
     }
 
