@@ -370,24 +370,25 @@ int wmain ( ) {
     if ( sodium_init ( ) == -1 )
         return 1;
 
-    unsigned char salt[ crypto_pwhash_scryptsalsa208sha256_SALTBYTES ];
-    unsigned char key[ crypto_box_SEEDBYTES ];
+    std::byte salt[ crypto_pwhash_scryptsalsa208sha256_SALTBYTES ];
+    std::byte key[ crypto_box_SEEDBYTES ];
 
     randombytes_buf ( salt, sizeof ( salt ) );
 
-    if ( crypto_pwhash_scryptsalsa208sha256 ( key, sizeof key, PASSWORD, strlen ( PASSWORD ), salt,
-                                              crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE,
+    if ( crypto_pwhash_scryptsalsa208sha256 ( ( unsigned char * ) key, sizeof key, PASSWORD, strlen ( PASSWORD ),
+                                              ( unsigned char * ) salt, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE,
                                               crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE ) != 0 )
         std::wcout << sax::bg::wred << L"out-of-memory" << nl;
 
-    char hashed_password[ crypto_pwhash_scryptsalsa208sha256_STRBYTES ];
+    std::byte hashed_password[ crypto_pwhash_scryptsalsa208sha256_STRBYTES ];
 
-    if ( crypto_pwhash_scryptsalsa208sha256_str ( hashed_password, PASSWORD, strlen ( PASSWORD ),
+    if ( crypto_pwhash_scryptsalsa208sha256_str ( ( char * ) hashed_password, PASSWORD, strlen ( PASSWORD ),
                                                   crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE,
                                                   crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE ) != 0 )
         std::wcout << sax::bg::wred << L"out-of-memory" << nl;
 
-    if ( crypto_pwhash_scryptsalsa208sha256_str_verify ( hashed_password, PASSWORD, strlen ( PASSWORD ) ) != 0 )
+    if ( crypto_pwhash_scryptsalsa208sha256_str_verify ( ( char * ) hashed_password, WRONG_PASSWORD, strlen ( WRONG_PASSWORD ) ) !=
+         0 )
         std::wcout << sax::fg::wred << L"password incorrect" << nl;
     else
         std::wcout << sax::fg::wgreen << L"password accepted" << nl;
